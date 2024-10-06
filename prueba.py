@@ -1,30 +1,39 @@
 import pygame
+import random
 
 # Inicializa Pygame
 pygame.init()
 
+# Configurar la pantalla
+ancho_ventana = 300
+alto_ventana = 600
+screen = pygame.display.set_mode((ancho_ventana, alto_ventana))
+
 # Colores
-AZUL = (0, 0, 255)
-VERDE = (0, 255, 0)
 NEGRO = (0, 0, 0)
+AMARILLO = (255, 255, 0)
 
-# Configurar la ventana
-ancho_ventana = 400
-alto_ventana = 400
-ventana = pygame.display.set_mode((ancho_ventana, alto_ventana))
+# FPS del juego
+clock = pygame.time.Clock()
 
-# Título de la ventana
-pygame.display.set_caption("Formas Paralizadas")
+# Posiciones de los bloques caídos
+bloques_estaticos = []
 
-# Posición inicial del primer cuadrado
-x_cuadrado = 50
-y_cuadrado = 50
+# Crear un bloque en una posición aleatoria
+def crear_bloque():
+    x = random.randint(0, ancho_ventana // 40 - 1) * 40
+    return [x, 0]
 
-# Velocidad de movimiento
+# Dibuja todos los bloques en la pantalla
+def dibujar_bloques():
+    for bloque in bloques_estaticos:
+        pygame.draw.rect(screen, AMARILLO, (bloque[0], bloque[1], 40, 40))
+
+# Bloque activo (actual)
+bloque_actual = crear_bloque()
+
+# Velocidad de caída del bloque
 velocidad = 5
-
-# Estado para saber si el primer cuadrado está paralizado
-cuadrado_paralizado = False
 
 # Bucle principal
 ejecutando = True
@@ -33,26 +42,31 @@ while ejecutando:
         if evento.type == pygame.QUIT:
             ejecutando = False
 
-    # Color de fondo
-    ventana.fill(NEGRO)
+    # Fondo de pantalla
+    screen.fill(NEGRO)
 
-    if not cuadrado_paralizado:
-        # Mueve el cuadrado hacia abajo
-        y_cuadrado += velocidad
-        
-        # Condición para detener el cuadrado
-        if y_cuadrado >= 300:
-            cuadrado_paralizado = True  # Paraliza el cuadrado cuando llega a esta posición
-    
-    # Dibuja el primer cuadrado
-    pygame.draw.rect(ventana, AZUL, (x_cuadrado, y_cuadrado, 50, 50))
+    # Detectar colisión con el suelo o con bloques caídos
+    if bloque_actual[1] + 40 >= alto_ventana or [bloque_actual[0], bloque_actual[1] + 40] in bloques_estaticos:
+        # Añadir el bloque actual a los bloques estáticos
+        bloques_estaticos.append(bloque_actual)
+        # Crear un nuevo bloque
+        bloque_actual = crear_bloque()
+    else:
+        # Mover el bloque hacia abajo
+        bloque_actual[1] += velocidad
 
-    if cuadrado_paralizado:
-        # Dibuja un segundo cuadrado cuando el primero está paralizado
-        pygame.draw.rect(ventana, VERDE, (200, 200, 50, 50))
+    # Dibujar el bloque actual
+    pygame.draw.rect(screen, AMARILLO, (bloque_actual[0], bloque_actual[1], 40, 40))
 
-    # Actualiza la pantalla
+    # Dibujar los bloques que ya han caído
+    dibujar_bloques()
+
+    # Actualizar la pantalla
     pygame.display.flip()
+
+    # Controlar los FPS
+    clock.tick(30)
 
 # Salir de Pygame
 pygame.quit()
+
